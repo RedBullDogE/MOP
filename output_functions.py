@@ -26,7 +26,16 @@ def output_table(x_matrix, y_matrix, y_average):
     return res_str
 
 
-def output_line(string, array):
-    layout = "{}:" + " {:5.5}," * len(array)
-    result = layout[:-1].format(string, *array)
+def output_line(string, data):
+    if isinstance(data, list):
+        layout = "{}:" + " {:5}," * len(data)
+        result = layout[:-1].format(string, *data)
+    elif isinstance(data, (bool, int)):
+        layout = "{}: {}"
+        result = layout.format(string, data)
+    elif isinstance(data, float):
+        layout = "{}: {:5.5}"
+        result = layout.format(string, data)
+    else:
+        raise TypeError()
     return result

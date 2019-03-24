@@ -23,10 +23,29 @@ g_t = 0.7679
 t_t = 2.306
 # f_t = 4.1
 
-f_table = {
-    8: [5.3, 4.5, 4.1],
-    12: [4.8, 3.9, 3.5]
+g_table = {
+    0.05: {
+        4: [0.9065, 0.7679, 0.6841, 0.6287, 0.5892, 0.5598]
+    },
+    0.01: {
+        4: [0.9676, 0.8643, 0.7814, 0.7212, 0.6761, 0.6410]
+    }
 }
+
+t_table = {
+    4: 2.776,
+    8: 2.306,
+    12: 2.179,
+    16: 2.120
+}
+
+f_table = {
+    4: [7.7, 6.9, 6.6],
+    8: [5.3, 4.5, 4.1],
+    12: [4.8, 3.9, 3.5],
+    16: [4.5, 3.6, 3.2]
+}
+
 
 f1 = m - 1
 f2 = N
@@ -77,10 +96,11 @@ f4 = N - d
 
 new_y_values = [response_function(new_nat_coeffs, nat_plan_point) for nat_plan_point in nat_plan_matrix]
 disp_ad = (m / (N - d)) * sum([dispersion(y_average_values[i], new_y_values) for i in range(N)])
-f_p = disp_ad / disp_b
+f_p = float(disp_ad / disp_b)
 f_t = f_table[2 * N][f4 - 1]
-print(f_p < f_t)
 
 print(output_table(nat_plan_matrix, y_values, y_average_values))
 print(output_line("Y result (for naturalized values)", y_nat_result))
-print("{}: {}".format("Dispersion homogeneity", g_p < g_t))
+print(output_line("G-cochren's criteria (dispersion homogeneity)", g_p < g_t))
+print(output_line("T-Student's criteria (significance of coefficients)", new_nat_coeffs))
+print(output_line("F-Fisher's criteria (Fisher distribution)", f_t < f_p))
