@@ -1,7 +1,7 @@
 from numpy.linalg import det
 
 
-def calc_norm_coeff(nat_matrix, y_av_list):
+def calc_coeffs(nat_matrix, y_av_list):
     """
     Calculating normalized coefficients for regression equation,
     based on normalized matrix of X and list of average values of Y
@@ -85,3 +85,21 @@ def response_function(coeffs, variables):
     """
     y = coeffs[0] + sum([b * x for b, x in zip(coeffs[1:], variables)])
     return y
+
+
+def dispersion(aver_val, array):
+    """
+    Function for calculating dispersion of given array
+
+    :param aver_val: average value of array
+    :param array: array for which the dispersion is calculated
+    :return: dispersion value
+    """
+    squared_difference = [((array[i] - aver_val) ** 2) for i in range(len(array))]
+    disp_val = sum(squared_difference) / len(array)
+    return disp_val
+
+
+def beta_value(y_av_arr, nat_plan_point):
+    beta = sum(map(lambda y, x: y * x, y_av_arr, nat_plan_point)) / len(y_av_arr)
+    return beta
