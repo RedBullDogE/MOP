@@ -1,6 +1,7 @@
 from random import uniform, gauss
 from math import sqrt
-from MOP.Lab2_func import *
+from Lab2_func import *
+from output_functions import output_table
 
 # Input values. Variant of the task:
 x1_min = -15
