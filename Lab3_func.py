@@ -100,6 +100,18 @@ def dispersion(aver_val, array):
     return disp_val
 
 
-def beta_value(y_av_arr, nat_plan_point):
-    beta = sum(map(lambda y, x: y * x, y_av_arr, nat_plan_point)) / len(y_av_arr)
+def beta_value(y_av_arr, norm_plan_point):
+    """
+    Calculating beta-value:
+        Bj = 1 / N * sum(Yi, Xij), i = (1 -> K)
+        where:
+            N - number of plan points;
+            K - number of factors;
+            Yi - average value of Y for i row;
+            Xij - normalized value of X for i row j column;
+    :param y_av_arr: array of y average values
+    :param norm_plan_point:
+    :return: beta value for specified column
+    """
+    beta = sum(map(lambda y, x: y * x, y_av_arr, norm_plan_point)) / len(y_av_arr)
     return beta
