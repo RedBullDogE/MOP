@@ -28,13 +28,17 @@ def output_table(x_matrix, y_matrix, y_average):
 
 def output_line(string, data):
     if isinstance(data, list):
-        layout = "{}:" + " {:5}," * len(data)
-        result = layout[:-1].format(string, *data)
+        if isinstance(data[0], float):
+            layout = "{}" + " {:5.5}," * len(data)
+            result = layout[:-1].format(string, *data)
+        else:
+            layout = "{}" + " {:5}," * len(data)
+            result = layout[:-1].format(string, *data)
     elif isinstance(data, (bool, int)):
-        layout = "{}: {}"
+        layout = "{} {}"
         result = layout.format(string, data)
     elif isinstance(data, float):
-        layout = "{}: {:5.5}"
+        layout = "{} {:5.5}"
         result = layout.format(string, data)
     else:
         raise TypeError()
