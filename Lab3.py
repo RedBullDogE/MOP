@@ -2,18 +2,14 @@ from random import uniform
 from Lab3_func import (calc_coeffs, response_function, dispersion, beta_value)
 from output_functions import output_table, output_line
 
-x1_min = -15.0
-x1_max = 30.0
-x2_min = 25.0
-x2_max = 65.0
-x3_min = -15.0
-x3_max = -5.0
+x1_min, x1_max = -15.0, 30.0
+x2_min, x2_max = 25.0, 65.0
+x3_min, x3_max = -15.0, -5.0
 
 x_min = (x1_min + x2_min + x3_min) / 3
 x_max = (x1_max + x2_max + x3_max) / 3
 
-y_min = 200 + x_min
-y_max = 200 + x_max
+y_min, y_max = 200 + x_min, 200 + x_max
 
 m = 3  # Number of experiments
 N = 4  # Number of plan points
@@ -95,8 +91,10 @@ f_p = float(disp_ad / disp_b)
 print(output_table(nat_plan_matrix, y_values, y_average_values))
 print(output_line("Y result (for naturalized values):", y_nat_result))
 print("f1 = m - 1 = {}\nf2 = N = {}\nf3 = f1 * f2 = {}\nf4 = N - d = {}".format(f1, f2, f3, f4))
-print(output_line("G-cochren's criteria (dispersion homogeneity)\n\tG_p < G_t:", g_p < g_t))
+print(output_line("G-Cochren's criteria (dispersion homogeneity)\n\tG_p({:.5}) < G_t({:.5}):".format(g_p, g_t),
+                  g_p < g_t))
 print("T-Student's criteria (significance of coefficients)")
 print(output_line("\tY = {:.5} + {:.5} * x1 + {:.5} * x2 + {:.5} * x3\n\tNew Y values:".format(*new_nat_coeffs),
                   new_y_values))
-print(output_line("F-Fisher's criteria (Fisher distribution)\n\tF_p < F_t:", f_p < f_t))
+print(output_line("F-Fisher's criteria (Fisher distribution)\n\tF_p({:.5}) < F_t({:.5}):".format(f_p, f_t),
+                  f_p < f_t))
