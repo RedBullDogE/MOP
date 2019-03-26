@@ -90,6 +90,7 @@ f_p = float(disp_ad / disp_b)
 
 print(output_table(nat_plan_matrix, y_values, y_average_values))
 print(output_line("Y result (for naturalized values):", y_nat_result))
+print(output_line("Regression coefficients (for naturalized values):", nat_coeffs))
 print("f1 = m - 1 = {}\nf2 = N = {}\nf3 = f1 * f2 = {}\nf4 = N - d = {}".format(f1, f2, f3, f4))
 print(output_line("G-Cochren's criteria (dispersion homogeneity)\n\tG_p({:.5}) < G_t({:.5}):".format(g_p, g_t),
                   g_p < g_t))
