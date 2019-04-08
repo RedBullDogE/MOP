@@ -1,6 +1,7 @@
 import numpy as np
-from itertools import combinations
+from itertools import combinations, product
 from random import uniform
+from prettytable import PrettyTable
 
 x1_min, x1_max = -40, 20
 x2_min, x2_max = 5, 40
@@ -70,13 +71,15 @@ class Regression:
     def __init__(self, n, interaction="0"):
         if interaction == "max":
             self.__coeff_list_size = 2 ** n
-            interaction = 2 ** n - n
+            interaction = 2 ** n - n - 1
         else:
             try:
                 interaction = int(interaction)
+                if interaction > 2 ** n - n - 1:
+                    raise ValueError("interaction must be less than 2 ** n - n")
                 self.__coeff_list_size = n + interaction + 1
-            except ValueError:
-                raise ValueError("interaction must be str(int) or 'max'")
+            except TypeError:
+                raise TypeError("interaction must be str(int) or 'max'")
 
         self.__feature_list_size = n
         self.__feature_list = [Feature(i + 1) for i in range(n)]
@@ -84,31 +87,23 @@ class Regression:
         for i in range(min(self.__feature_list_size, interaction + 1)):
             self.__terms.extend(list(combinations(self.__feature_list, i + 1)))
 
-    def resp_func_val(self, coeff_list=None, x_list=None):
-        def product(arr):
-            res = 1
-            for el in arr:
-                res *= el
-            return res
+        self.__terms = self.__terms[:n + interaction]
 
+    def resp_func_val(self, coeff_list=None, x_list=None):
         def resp_func(coeffs, terms):
-            term_value_list = [1] + [product(term) for term in self.__terms]
-            y = sum(map(lambda b, x: b * x, self.__coeff_list, term_value_list))
+            term_value_list = [1] + [mul(term) for term in terms]
+            y = sum(map(lambda b, x: b * x, coeffs, term_value_list))
             return y
 
-        if coeff_list is None and x_list is None:
-            return resp_func(self.__coeff_list, self.__feature_list)
-        elif coeff_list is None:
-            return resp_func(self.__coeff_list, x_list)
-        elif x_list is None:
-            return resp_func(coeff_list, self.__feature_list)
-        else:
-            if self.__coeff_list_size == len(coeff_list) and self.__feature_list_size == len(x_list):
-                self.set_features(x_list)
-                self.set_coeffs(coeff_list)
-                return resp_func(coeff_list, x_list)
-            else:
-                raise IndexError("input lists must be the same size as the regression data lists")
+        if coeff_list is None and x_list is not None:
+            self.set_features(x_list)
+        elif x_list is None and coeff_list is not None:
+            self.set_coeffs(coeff_list)
+        elif x_list is not None and coeff_list is not None:
+            self.set_features(x_list)
+            self.set_coeffs(coeff_list)
+
+        return resp_func(self.__coeff_list, self.__terms)
 
     def set_features(self, x_list):
         if self.__feature_list_size == len(x_list):
@@ -148,19 +143,49 @@ class Regression:
 
     def __str__(self):
         string_reg = "{}".format(self.__coeff_list[0])
-        print(self.__terms)
         for i in range(len(self.__terms)):
             row = " + {}" + "*{}" * len(self.__terms[i])
-            print(self.__terms[i])
             string_reg += row.format(self.__coeff_list[i + 1], *self.__terms[i])
 
         return string_reg
 
 
-reg = Regression(2, "1")
-print(reg)
-reg.set_features([int(uniform(1, 10)) for i in range(reg.num_features)])
-reg.set_coeffs([int(uniform(1, 10)) for i in range(reg.num_coeffs)])
-print(reg.resp_func_val())
-print(reg.terms_list)
-print(reg.coeffs_list)
+def mul(arr):
+    res = 1
+    for el in arr:
+        res *= el
+    return res
+
+
+def gen_norm_matrix(f_num):
+    k = 2 ** f_num
+    zero_factor = [1] * k
+    test_reg = Regression(f_num, "max")
+    x_variations = [list(item) for item in product([-1, 1], repeat=f_num)]
+    matrix = []
+    for i in range(k):
+        test_reg.set_features(x_variations[i])
+        row = list(map(mul, test_reg.terms_list))
+        matrix.append(row)
+
+    return list(zip(zero_factor, *zip(*matrix)))
+
+
+N = 3
+
+# reg = Regression(N, "max")
+# print(reg)
+# reg.set_features([1, 2, 3])
+# print(reg.terms_list)
+mat = gen_norm_matrix(N)
+
+
+def makePrettyTable(matr):
+    table = PrettyTable()
+    table.field_names = ["x{}".format(i) for i in range(len(matr))]
+    for row in matr:
+        table.add_row(row)
+    return table
+
+
+print(makePrettyTable(mat))
