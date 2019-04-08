@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import combinations
+from random import uniform
 
 x1_min, x1_max = -40, 20
 x2_min, x2_max = 5, 40
@@ -22,10 +23,16 @@ class Coefficient:
     def __add__(self, other):
         return self.value + other
 
+    def __radd__(self, other):
+        return self.value + other
+
     def __sub__(self, other):
         return self.value - other
 
     def __mul__(self, other):
+        return self.value * other
+
+    def __rmul__(self, other):
         return self.value * other
 
     def __truediv__(self, other):
@@ -54,81 +61,106 @@ class Feature(Coefficient):
 
 
 class Regression:
-    coeff_list: list = []
-    coeff_list_size: int = 0
-    feature_list_size: int = 0
-    feature_list: list = []
-    terms: list = []
+    __coeff_list: list = []
+    __coeff_list_size: int = 0
+    __feature_list_size: int = 0
+    __feature_list: list = []
+    __terms: list = []
 
     def __init__(self, n, interaction="0"):
         if interaction == "max":
-            self.coeff_list_size = 2 ** n
+            self.__coeff_list_size = 2 ** n
+            interaction = 2 ** n - n
         else:
-            self.coeff_list_size = n + int(interaction) + 1
+            try:
+                interaction = int(interaction)
+                self.__coeff_list_size = n + interaction + 1
+            except ValueError:
+                raise ValueError("interaction must be str(int) or 'max'")
 
-        self.feature_list_size = n
-        self.feature_list = [Feature(i + 1) for i in range(n)]
-        self.coeff_list = [Coefficient(i) for i in range(self.coeff_list_size)]
-        for i in range(self.feature_list_size):
-            self.terms.extend(list(combinations(self.feature_list, i + 1)))
+        self.__feature_list_size = n
+        self.__feature_list = [Feature(i + 1) for i in range(n)]
+        self.__coeff_list = [Coefficient(i) for i in range(self.__coeff_list_size)]
+        for i in range(min(self.__feature_list_size, interaction + 1)):
+            self.__terms.extend(list(combinations(self.__feature_list, i + 1)))
 
-    def value_of_y(self, coeff_list, x_list):
-        if self.coeff_list_size == len(coeff_list) and self.feature_list_size == len(x_list):
-            self.set_features(x_list)
-            self.set_coeffs(coeff_list)
-            term_value_list = [sum(term) for term in self.terms]
-            return sum(map(lambda b, x: b * x, self.coeff_list, term_value_list))
+    def resp_func_val(self, coeff_list=None, x_list=None):
+        def product(arr):
+            res = 1
+            for el in arr:
+                res *= el
+            return res
+
+        def resp_func(coeffs, terms):
+            term_value_list = [1] + [product(term) for term in self.__terms]
+            y = sum(map(lambda b, x: b * x, self.__coeff_list, term_value_list))
+            return y
+
+        if coeff_list is None and x_list is None:
+            return resp_func(self.__coeff_list, self.__feature_list)
+        elif coeff_list is None:
+            return resp_func(self.__coeff_list, x_list)
+        elif x_list is None:
+            return resp_func(coeff_list, self.__feature_list)
         else:
-            raise IndexError("input lists must be the same size as the regression data lists")
+            if self.__coeff_list_size == len(coeff_list) and self.__feature_list_size == len(x_list):
+                self.set_features(x_list)
+                self.set_coeffs(coeff_list)
+                return resp_func(coeff_list, x_list)
+            else:
+                raise IndexError("input lists must be the same size as the regression data lists")
 
     def set_features(self, x_list):
-        for i in range(self.feature_list_size):
-            self.feature_list[i].set_value(x_list[i])
+        if self.__feature_list_size == len(x_list):
+            for i in range(self.__feature_list_size):
+                self.__feature_list[i].set_value(x_list[i])
+        else:
+            raise IndexError("length of input feature list must be equal to the size of initial feature list")
 
     def clean_features(self):
-        self.feature_list = [Feature(i + 1) for i in range(self.feature_list_size)]
+        self.__feature_list = [Feature(i + 1) for i in range(self.__feature_list_size)]
 
     def set_coeffs(self, coeff_list):
-        for i in range(self.coeff_list_size):
-            self.coeff_list[i].set_value(coeff_list[i])
+        if self.__coeff_list_size == len(coeff_list):
+            for i in range(self.__coeff_list_size):
+                self.__coeff_list[i].set_value(coeff_list[i])
+        else:
+            raise IndexError("length of input coefficient list must be equal to the size of initial coefficient list")
 
     def clean_coeffs(self):
-        self.feature_list = [Coefficient(i) for i in range(self.coeff_list_size)]
+        self.__feature_list = [Coefficient(i) for i in range(self.__coeff_list_size)]
 
     @property
-    def terms_val(self):
-        return [tuple(x.val() for x in term) for term in self.terms]
+    def terms_list(self):
+        return [tuple(x.val() for x in term) for term in self.__terms]
 
     @property
-    def coeffs_val(self):
-        return [b.val() for b in self.coeff_list]
+    def coeffs_list(self):
+        return [b.val() for b in self.__coeff_list]
+
+    @property
+    def num_features(self):
+        return self.__feature_list_size
+
+    @property
+    def num_coeffs(self):
+        return self.__coeff_list_size
 
     def __str__(self):
-        cur_coeff = 0
-        string_reg = "{}".format(self.coeff_list[cur_coeff])
-        for i in range(self.feature_list_size):
-            x_list = list(combinations(self.feature_list, i + 1))
-            row = " + {}" + "*{}" * len(x_list[0])
-            for j in range(len(x_list)):
-                cur_coeff += 1
-                string_reg += row.format(self.coeff_list[cur_coeff], *x_list[j])
+        string_reg = "{}".format(self.__coeff_list[0])
+        print(self.__terms)
+        for i in range(len(self.__terms)):
+            row = " + {}" + "*{}" * len(self.__terms[i])
+            print(self.__terms[i])
+            string_reg += row.format(self.__coeff_list[i + 1], *self.__terms[i])
+
         return string_reg
 
 
-# def regression(b_list, x_list):
-#     b_num = [0, 1, 2, 3, 12, 13, 23, 123]
-#     b = {i: j for i, j in (b_num, b_list)}
-#     x = {i: j for i, j in enumerate(x_list, start=1)}
-#     y = b[0] + b[1] * x[1] + b[2] * x[2] + b[3] * x[3] + \
-#         b[12] * x[1] * x[2] + b[13] * x[1] * x[3] + b[23] * x[2] * x[3] + \
-#         b[123] * x[1] * x[2] * x[3]
-#     return y
-
-
-reg = Regression(2, "max")
+reg = Regression(2, "1")
 print(reg)
-reg.set_features([1, 2])
-reg.set_coeffs([1, 2, 3, 4])
-print(reg)
-
-
+reg.set_features([int(uniform(1, 10)) for i in range(reg.num_features)])
+reg.set_coeffs([int(uniform(1, 10)) for i in range(reg.num_coeffs)])
+print(reg.resp_func_val())
+print(reg.terms_list)
+print(reg.coeffs_list)
