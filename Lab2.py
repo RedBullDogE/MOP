@@ -1,6 +1,7 @@
-from random import uniform, gauss
+from random import uniform
 from math import sqrt
 from Lab2_func import *
+from common_functions import dispersion, response_function
 from output_functions import output_table
 
 # Input values. Variant of the task:

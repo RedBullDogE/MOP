@@ -1,5 +1,6 @@
 from random import uniform
-from Lab3_func import (calc_coeffs, response_function, dispersion, beta_value)
+from Lab3_func import (calc_coeffs, beta_value)
+from common_functions import dispersion, response_function
 from output_functions import output_table, output_line
 
 x1_min, x1_max = -15.0, 30.0
