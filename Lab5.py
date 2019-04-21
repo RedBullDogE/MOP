@@ -1,15 +1,10 @@
-import numpy as np
 from itertools import combinations, product
-from functools import partial
-from random import uniform
 from prettytable import PrettyTable
-from scipy.stats import f, t
-from Lab3_func import beta_value
-from common_functions import dispersion
 
-x1_min, x1_max = -40, 20
-x2_min, x2_max = 5, 40
-x3_min, x3_max = -40, -20
+
+x1_min, x1_max = -2, 4
+x2_min, x2_max = -10, 8
+x3_min, x3_max = -3, 6
 x_min, x_max = (x1_min + x2_min + x3_min) / 3, (x1_max + x2_max + x3_max) / 3
 y_min = 200 + x_min
 y_max = 200 + x_max
@@ -43,6 +38,9 @@ class Coefficient:
     def __truediv__(self, other):
         return self.value * other
 
+    def __pow__(self, power, modulo=None):
+        return self.value ** power
+
     def val(self):
         return self.value
 
@@ -71,13 +69,16 @@ class Feature(Coefficient):
 
 
 class Regression:
-    def __init__(self, n, interaction="0"):
+    def __init__(self, n, interaction=0, quadratic=False):
         self.__coeff_list = []
         self.__feature_list = []
         self.__terms = []
-        if interaction == "max":
+        self.__quadratic = quadratic
+
+        if interaction == 2 ** n - n - 1 and quadratic:
+            coeff_list_size = 2 ** n + 3
+        elif interaction == 2 ** n - n - 1 and not quadratic:
             coeff_list_size = 2 ** n
-            interaction = 2 ** n - n - 1
         else:
             try:
                 interaction = int(interaction)
@@ -94,6 +95,9 @@ class Regression:
             self.__terms.extend(list(combinations(self.__feature_list, i + 1)))
 
         self.__terms = self.__terms[:n + interaction]
+
+        if interaction == 2 ** n - n - 1 and quadratic:
+            self.__terms.extend([(x, x) for x in self.__feature_list])
 
     def resp_func_val(self, coeff_list=None, x_list=None):
         def resp_func(coeffs, terms):
@@ -163,10 +167,10 @@ def mul(arr):
     return res
 
 
-def gen_norm_matrix(f_num, n=0):
+def gen_norm_matrix(f_num, n=0, quadratic=False):
     k = 2 ** f_num - n
     zero_factor = [1] * k
-    test_reg = Regression(f_num, str(2 ** f_num - f_num - n - 1))
+    test_reg = Regression(f_num, 2 ** f_num - f_num - n - 1, quadratic)
     x_variations = [list(item) for item in product([-1, 1], repeat=f_num)]
     matrix = []
     for i in range(k):
@@ -183,14 +187,14 @@ def gen_nat_matrix(norm_matr):
     return x
 
 
-def make_pretty_table(matr, start=0):
+def make_pretty_table(matr):
     table = PrettyTable()
-    header = ["x0", "x1", "x2", "x3", "x1 * x2", "x1 * x3", "x2 * x3", "x1 * x2 * x3"]
+    header = ["x0", "x1", "x2", "x3", "x1 * x2", "x1 * x3", "x2 * x3", "x1 * x2 * x3", "x1 ^ 2", "x2 ^ 2", "x3 ^ 2"]
     table.field_names = header[:len(matr[0])]
     for row in matr:
         table.add_row(row)
     return table
 
 
-norm_matrix = make_pretty_table(gen_norm_matrix(3, 3), 0)
+norm_matrix = make_pretty_table(gen_norm_matrix(3, 0, True))
 print(norm_matrix)

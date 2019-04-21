@@ -22,7 +22,7 @@ ax.spines['top'].set_color('none')
 ax.xaxis.set_ticks_position('bottom')
 ax.yaxis.set_ticks_position('left')
 
-ax.margins(0.2
+ax.margins(0.2)
 
 plt.plot(x, y)
 plt.scatter(*bound_points)
